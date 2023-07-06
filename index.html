@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .image-wrapper {
+            position: relative;
+        }
+
+        .image-object {
+	        position: absolute;
+	        top: 0;
+	        left: 0;
+	        display: flex;
+	        align-items: center;
+	        justify-content: center;
+	        outline: 3px solid lime;
+            overflow: visible;
+        }
+
+        .image-object-label {
+            position: absolute;
+            color: lime;
+            top: 100%;
+            left: 0;
+	        font-weight: bold;
+	        font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <!-- Load TensorFlow.js. This is required to use MobileNet. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.1"> </script>
+    <!-- Load the coco-ssd model. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"> </script>
+
+    <!-- Replace this with your image. Make sure CORS settings allow reading the image! -->
+    <div class="image-wrapper" id="wrapper">
+        <img id="img" src="Jaywalking-Frames-Closeup.jpg"></img>
+    </div>
+    <button id="button">Recognize</button>
+
+    <!-- Place your code in the script tag below. You can also use an external .js file -->
+    <script>
+	    // Notice there is no 'import' statement. 'cocoSsd' and 'tf' is
+	    // available on the index-page because of the script tag above.
+
+	    const img = document.getElementById('img');
+		const wrapper = document.getElementById('wrapper');
+		const button = document.getElementById('button');
+
+		const toConfidencePct = (score) => {
+			return score.toLocaleString(undefined, { style: 'percent' });
+        }
+		const labelObject = (prediction) => {
+			console.log(prediction);
+			const [top, left, width, height] = prediction.bbox;
+			const style = `top: ${left}px; left: ${top}px; width: ${width}px; height: ${height}px`;
+
+			const template = `<span class="image-object" style="${style}">
+                    <span class="image-object-label">
+                        ${prediction.class} (${toConfidencePct(prediction.score)} confidence)
+                    </span>
+                </span>`;
+
+			wrapper.innerHTML = wrapper.innerHTML.concat(template);
+        }
+
+
+        const recognize = () => {
+	        cocoSsd.load().then(model => {
+		        // detect objects in the image.
+		        model.detect(img).then(predictions => {
+			        for (const prediction of predictions) {
+				        labelObject(prediction);
+			        }
+		        });
+	        });
+        }
+	    // Load the model.
+	    button.addEventListener('click', recognize);
+    </script>
+</body>
+</html>
